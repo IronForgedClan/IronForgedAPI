@@ -6,9 +6,6 @@ RUN apk add --no-cache \
     gcc \
     musl-dev \
     pkgconf \
-    jpeg-dev \
-    zlib-dev \
-    freetype-dev \
     libffi-dev
 
 RUN pip install --no-cache-dir --upgrade pip
@@ -20,50 +17,36 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt \
     find /install -name '*.egg-info' -exec rm -rf {} + 2>/dev/null; \
     rm -rf /install/lib/python3.13/site-packages/pip
 
-# runner: clean Alpine + mariadb-connector-c + botuser, shared by prod images
+# runner: clean Alpine + mariadb-connector-c + apiuser, shared by prod images
 FROM python:3.13-alpine AS runner
 
 RUN apk add --no-cache mariadb-connector-c
 
-RUN adduser -D botuser
-RUN mkdir /app && chown botuser:botuser /app
+RUN adduser -D apiuser
+RUN mkdir /app && chown apiuser:apiuser /app
 WORKDIR /app
 
-USER botuser
+USER apiuser
 
-# bot-prod: bot + core only
-FROM runner AS bot-prod
-
-COPY --from=builder /install /usr/local
-COPY --chown=botuser:botuser main.py ./
-COPY --chown=botuser:botuser ironforgedbot ./ironforgedbot
-
-CMD ["python", "main.py"]
-
-# api-prod: api + core only
+# api-prod: api only
 FROM runner AS api-prod
 
 COPY --from=builder /install /usr/local
-COPY --chown=botuser:botuser api ./api
+COPY --chown=apiuser:apiuser api ./api
 
 CMD ["python", "-m", "api.main"]
 
-# dev: builder + dev dependencies + file watcher + full copy for self-contained dev
+# dev: builder + dev dependencies + full copy for self-contained dev
 FROM builder AS dev
 
-COPY requirements-dev.txt .
-RUN pip install --no-cache-dir -r requirements-dev.txt
-
-RUN adduser -D botuser
-RUN mkdir /app && chown botuser:botuser /app
+RUN adduser -D apiuser
+RUN mkdir /app && chown apiuser:apiuser /app
 WORKDIR /app
 
 COPY --from=builder /install /usr/local
-COPY --chown=botuser:botuser . .
+COPY --chown=apiuser:apiuser . .
 
-USER botuser
-
-CMD ["watchmedo", "auto-restart", "--directory=.", "--pattern=*.py", "--recursive", "--", "python", "main.py"]
+USER apiuser
 
 # api-dev: dev deps + uvicorn auto-reload for the API service
 FROM dev AS api-dev

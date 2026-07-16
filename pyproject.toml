@@ -5,6 +5,21 @@ description = "REST API for the Iron Forged Old School RuneScape clan"
 requires-python = ">=3.13"
 dependencies = [
     "ironforgedcore @ git+https://github.com/ironforgedclan/ironforgedcore.git@v0.1.0",
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "sqlalchemy[asyncio]",
+    "aiomysql",
+    "alembic",
+    "python-dotenv",
+    "concurrent-log-handler",
+    "python-dateutil",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build",
+    "twine",
 ]
 
 [build-system]

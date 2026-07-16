@@ -1,10 +1,14 @@
+import importlib.metadata
+from pathlib import Path
+
 try:
-    from importlib.metadata import version as _pkg_version
+    __version__ = importlib.metadata.version("ironforgedapi")
+except importlib.metadata.PackageNotFoundError:
+    _toml_path = Path(__file__).parent.parent / "pyproject.toml"
+    if _toml_path.exists():
+        import tomllib
 
-    __version__ = _pkg_version(__name__)
-except Exception:
-    import tomllib
-    from pathlib import Path
-
-    with open(Path(__file__).parent / "pyproject.toml", "rb") as _f:
-        __version__ = tomllib.load(_f)["project"]["version"]
+        with open(_toml_path, "rb") as _f:
+            __version__ = tomllib.load(_f)["project"]["version"]
+    else:
+        __version__ = "0.0.0+unknown"
