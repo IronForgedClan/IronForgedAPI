@@ -28,7 +28,7 @@ jobs:
                   app-id: ${{ secrets.SUBMODULE_APP_ID }}
                   private-key: ${{ secrets.SUBMODULE_APP_PRIVATE_KEY }}
                   repositories: |
-                      IronForgedBot
+                      IronForgedApi
                       IronForgedBot_Data
 
             - name: Checkout code
@@ -40,7 +40,7 @@ jobs:
             - name: Read version
               id: version
               run: |
-                  VERSION=$(python3 -c 'import tomllib; print(tomllib.load(open("ironforgedbot/pyproject.toml","rb"))["project"]["version"])')
+                  VERSION=$(python3 -c 'import tomllib; print(tomllib.load(open("api/pyproject.toml","rb"))["project"]["version"])')
                   echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
             - name: Send warning message
@@ -80,7 +80,7 @@ jobs:
               run: |
                 ssh $SSH_USER@$SSH_HOST "
                 cd $BOT_DIR
-                /bin/bash deploy.sh ${{ inputs.environment }}
+                /bin/bash deploy.sh ${{ inputs.environment }} api
                 "
 
             - name: Send success message
@@ -88,5 +88,5 @@ jobs:
                   WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
               run: |
                   curl -X POST -H "Content-Type: application/json" \
-                  -d '{"content": "## 🟢 v${{ env.VERSION }} ONLINE.\nDetails can be found in the <#${{ secrets.CHANGELOG_CHANNEL_ID }}> channel."}' \
+                  -d '{"content": "## 🟢 API v${{ env.VERSION }} ONLINE."}' \
                   $WEBHOOK_URL

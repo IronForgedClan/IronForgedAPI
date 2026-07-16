@@ -4,7 +4,7 @@ on:
   workflow_call:
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ghcr.io/ironforgedclan/ironforgedbot
+  IMAGE_NAME: ghcr.io/ironforgedclan/ironforgedapi
 
 jobs:
   push-image:
@@ -25,7 +25,7 @@ jobs:
       - name: Read version
         id: version
         run: |
-          VERSION=$(python3 -c 'import tomllib; print(tomllib.load(open("ironforgedbot/pyproject.toml","rb"))["project"]["version"])')
+          VERSION=$(python3 -c 'import tomllib; print(tomllib.load(open("api/pyproject.toml","rb"))["project"]["version"])')
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Get latest Git tag
@@ -77,4 +77,3 @@ jobs:
       - name: Push latest tag to registry
         run: |
           docker push ${{ env.IMAGE_NAME }}:latest
-
