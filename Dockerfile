@@ -36,7 +36,6 @@ USER apiuser
 FROM runner AS api-prod
 
 COPY --from=builder /usr/local /usr/local
-COPY --chown=apiuser:apiuser alembic.ini /app/alembic.ini
 COPY --chown=apiuser:apiuser api ./api
 
 CMD ["python", "-m", "api.main"]
