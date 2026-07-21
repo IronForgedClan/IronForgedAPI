@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def init_api() -> None:
     logger.info(
-        f"Starting IronForgedBot API v{API_CONFIG.api_version} on "
+        f"Starting IronForgedAPI v{API_CONFIG.api_version} on "
         f"{API_CONFIG.API_HOST}:{API_CONFIG.API_PORT}"
     )
 
