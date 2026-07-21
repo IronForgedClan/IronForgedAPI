@@ -27,8 +27,7 @@ down-all:
 	docker compose down
 
 test:
-	python -m pip install -e .[dev]
-	python run_tests.py
+	docker compose run --rm api python run_tests.py
 
 format:
 	python -m black .
