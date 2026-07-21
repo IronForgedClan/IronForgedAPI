@@ -1,36 +1,13 @@
-services:
-    db:
-        image: mariadb:latest
-        container_name: ironforged_db
-        restart: unless-stopped
-        environment:
-            MARIADB_ROOT_PASSWORD: ${DB_ROOT}
-            MARIADB_DATABASE: ${DB_NAME}
-            MARIADB_USER: ${DB_USER}
-            MARIADB_PASSWORD: ${DB_PASS}
-        ports:
-            - "3306:3306"
-        healthcheck:
-            test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-            start_period: 10s
-            interval: 5s
-            timeout: 3s
-            retries: 5
-        volumes:
-            - mariadb_data:/var/lib/mysql
-            - ./init-db:/docker-entrypoint-initdb.d:ro
-        networks:
-            - ironforged-network
+# Dev only. The shared dev database lives in ../IronForgedBot/docker-compose.yml
+# (this compose only defines the api service and joins the shared ironforged-network).
 
+services:
     api:
         build:
             context: .
             target: api-dev
         image: ironforgedapi:dev
         restart: unless-stopped
-        depends_on:
-            db:
-                condition: service_healthy
         env_file: .env
         environment:
             DATABASE_URL: mysql+aiomysql://${DB_USER}:${DB_PASS}@db/${DB_NAME}
@@ -52,9 +29,6 @@ services:
         restart: unless-stopped
         working_dir: /app
         command: ["python", "-m", "api.main"]
-        depends_on:
-            db:
-                condition: service_healthy
         env_file: .env
         environment:
             DATABASE_URL: mysql+aiomysql://${DB_USER}:${DB_PASS}@db/${DB_NAME}
@@ -67,10 +41,7 @@ services:
         networks:
             - ironforged-network
 
-volumes:
-    mariadb_data:
-
 networks:
     ironforged-network:
         name: ironforged-network
-        driver: bridge
+        external: true
