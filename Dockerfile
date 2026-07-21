@@ -16,7 +16,6 @@ WORKDIR /build
 COPY api ./api
 RUN pip install --no-cache-dir ./api \
  && find /usr/local -name '__pycache__' -exec rm -rf {} + 2>/dev/null; \
-    find /usr/local -name '*.dist-info' -exec rm -rf {} + 2>/dev/null; \
     find /usr/local -name '*.egg-info' -exec rm -rf {} + 2>/dev/null; \
     rm -rf /usr/local/lib/python3.13/site-packages/pip
 
