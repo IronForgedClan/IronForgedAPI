@@ -1,18 +1,26 @@
 import logging
+import os
 import sys
 import unittest
+from unittest.mock import patch
+
+from tests.helpers import VALID_CONFIG
 
 
 def run_tests() -> bool:
-    logging.disable(logging.CRITICAL)
+    with patch.dict(os.environ, VALID_CONFIG):
+        logging.disable(logging.CRITICAL)
 
-    test_loader = unittest.TestLoader()
-    test_suite = test_loader.discover("tests", "*_test.py")
+        test_loader = unittest.TestLoader()
+        test_suite = test_loader.discover("tests", "*_test.py")
 
-    test_runner = unittest.TextTestRunner()
-    result = test_runner.run(test_suite)
+        test_runner = unittest.TextTestRunner()
+        result = test_runner.run(test_suite)
 
-    return not result.wasSuccessful()
+        if result.wasSuccessful():
+            return False
+        else:
+            return True
 
 
 if __name__ == "__main__":

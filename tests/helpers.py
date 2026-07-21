@@ -2,6 +2,23 @@ from unittest.mock import AsyncMock
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+VALID_CONFIG = {
+    "ENVIRONMENT": "dev",
+    "GUILD_ID": "2222",
+    "BOT_TOKEN": "aaaaa",
+    "WOM_GROUP_ID": "3333",
+    "WOM_API_KEY": "xxxxx",
+    "AUTOMATION_CHANNEL_ID": "123456",
+    "RAFFLE_CHANNEL_ID": "123456",
+    "INGOT_SHOP_CHANNEL_ID": "123456",
+    "RULES_CHANNEL_ID": "123456",
+    "RANKINGS_CHANNEL_ID": "123456",
+    "BOT_CHANGELOG_CHANNEL_ID": "123456",
+    "BOT_COMMANDS_CHANNEL_ID": "123456",
+    "CREATE_TICKET_CHANNEL_ID": "123456",
+    "DATABASE_URL": "mysql+aiomysql://test:test@localhost:3306/test",
+}
+
 
 def create_mock_db_session() -> AsyncMock:
     """Build a mock AsyncSession with the correct sync/async method split.
