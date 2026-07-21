@@ -23,6 +23,22 @@ jobs:
                   token: ${{ steps.app-token.outputs.token }}
                   submodules: recursive
 
+            - name: Debug submodule state
+              if: always()
+              run: |
+                  echo "=== git submodule status ==="
+                  git submodule status || echo "(no submodules registered)"
+                  echo "=== ls -la data/ ==="
+                  ls -la data/ 2>&1 || echo "(data/ missing or not a directory)"
+                  echo "=== files inside data/ ==="
+                  find data -type f 2>&1 | head -20 || echo "(no files found)"
+                  echo "=== .gitmodules ==="
+                  cat .gitmodules
+                  echo "=== .git/modules/data/config (URL git will use to refetch) ==="
+                  cat .git/modules/data/config 2>&1 | head -20 || echo "(no submodule git config)"
+                  echo "=== git config --get-regexp '^url\\.' ==="
+                  git config --get-regexp '^url\.' || echo "(no url.* config)"
+
             - name: Set up Python
               uses: actions/setup-python@v5
               with:
