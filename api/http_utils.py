@@ -8,6 +8,9 @@ IP_MAX_LENGTH = 64
 
 
 def get_client_ip(request: Request) -> str | None:
+    cf_ip = request.headers.get("cf-connecting-ip")
+    if cf_ip:
+        return cf_ip
     if request.client is not None:
         return request.client.host
     forwarded = request.headers.get("x-forwarded-for")
