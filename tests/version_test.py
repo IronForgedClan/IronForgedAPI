@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 
 def _read_pyproject_version() -> str:
-    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    pyproject_path = Path(__file__).parent.parent / "api" / "pyproject.toml"
     with open(pyproject_path, "rb") as f:
         return tomllib.load(f)["project"]["version"]
 

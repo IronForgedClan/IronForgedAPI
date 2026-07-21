@@ -34,7 +34,7 @@ jobs:
       - name: Read version
         id: version
         run: |
-          VERSION=$(python3 -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')
+          VERSION=$(python3 -c 'import tomllib; print(tomllib.load(open("api/pyproject.toml","rb"))["project"]["version"])')
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry

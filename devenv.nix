@@ -1,6 +1,6 @@
 {pkgs, lib, ...}:
 let
-  pyproject = builtins.fromTOML (builtins.readFile ./pyproject.toml);
+  pyproject = builtins.fromTOML (builtins.readFile ./api/pyproject.toml);
   requirements = pkgs.writeText "requirements.txt" (
     lib.concatStringsSep "\n" pyproject.project.dependencies + "\n"
   );

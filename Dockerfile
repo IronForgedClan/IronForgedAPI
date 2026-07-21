@@ -13,9 +13,8 @@ RUN pip install --no-cache-dir --upgrade pip
 
 WORKDIR /build
 
-COPY pyproject.toml ./
 COPY api ./api
-RUN pip install --no-cache-dir . \
+RUN pip install --no-cache-dir ./api \
  && find /usr/local -name '__pycache__' -exec rm -rf {} + 2>/dev/null; \
     find /usr/local -name '*.dist-info' -exec rm -rf {} + 2>/dev/null; \
     find /usr/local -name '*.egg-info' -exec rm -rf {} + 2>/dev/null; \

@@ -4,7 +4,7 @@ from pathlib import Path
 try:
     __version__ = importlib.metadata.version("ironforgedapi")
 except importlib.metadata.PackageNotFoundError:
-    _toml_path = Path(__file__).parent.parent / "pyproject.toml"
+    _toml_path = Path(__file__).parent / "pyproject.toml"
     if _toml_path.exists():
         import tomllib
 
