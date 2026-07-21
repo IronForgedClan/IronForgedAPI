@@ -11,7 +11,7 @@ SCRIPTS_DIR = os.path.join(
 if SCRIPTS_DIR not in sys.path:
     sys.path.insert(0, SCRIPTS_DIR)
 
-import manage_api_consumers  # noqa: E402,F401  (resolves @patch targets)
+import manage_api  # noqa: E402,F401  (resolves @patch targets)
 
 from api.models import ApiConsumer  # noqa: E402
 
@@ -87,11 +87,11 @@ def _patched_db_with_session(mock_db) -> AsyncMock:
     return mock_session
 
 
-@patch("manage_api_consumers.db")
-@patch("manage_api_consumers.list_consumers")
+@patch("manage_api.db")
+@patch("manage_api.list_consumers")
 class TestListSubcommand(unittest.TestCase):
     def test_list_prints_table(self, mock_list_consumers, mock_db):
-        from manage_api_consumers import main
+        from manage_api import main
 
         _patched_db_with_session(mock_db)
 
@@ -113,11 +113,11 @@ class TestListSubcommand(unittest.TestCase):
         mock_list_consumers.assert_awaited_once()
 
 
-@patch("manage_api_consumers.db")
-@patch("manage_api_consumers.Prompter")
-@patch("manage_api_consumers.get_consumer_by_name")
-@patch("manage_api_consumers.create_consumer")
-@patch("manage_api_consumers.known_perm_options")
+@patch("manage_api.db")
+@patch("manage_api.Prompter")
+@patch("manage_api.get_consumer_by_name")
+@patch("manage_api.create_consumer")
+@patch("manage_api.known_perm_options")
 class TestInteractiveCreate(unittest.TestCase):
     def test_create_flow(
         self,
@@ -127,7 +127,7 @@ class TestInteractiveCreate(unittest.TestCase):
         mock_prompter_cls,
         mock_db,
     ):
-        from manage_api_consumers import main
+        from manage_api import main
 
         mock_known_perm_options.return_value = [
             ("ingots:read", "Read ingots"),
@@ -165,7 +165,7 @@ class TestInteractiveCreate(unittest.TestCase):
         mock_prompter_cls,
         mock_db,
     ):
-        from manage_api_consumers import main
+        from manage_api import main
 
         mock_known_perm_options.return_value = [("ingots:read", "Read ingots")]
         mock_get_consumer.return_value = None
@@ -182,11 +182,11 @@ class TestInteractiveCreate(unittest.TestCase):
         mock_create.assert_not_called()
 
 
-@patch("manage_api_consumers.db")
-@patch("manage_api_consumers.Prompter")
-@patch("manage_api_consumers.set_perms")
-@patch("manage_api_consumers.list_consumers")
-@patch("manage_api_consumers.known_perm_options")
+@patch("manage_api.db")
+@patch("manage_api.Prompter")
+@patch("manage_api.set_perms")
+@patch("manage_api.list_consumers")
+@patch("manage_api.known_perm_options")
 class TestInteractiveChangePerms(unittest.TestCase):
     def test_grant_via_custom_toggle(
         self,
@@ -196,7 +196,7 @@ class TestInteractiveChangePerms(unittest.TestCase):
         mock_prompter_cls,
         mock_db,
     ):
-        from manage_api_consumers import main
+        from manage_api import main
 
         mock_known_perm_options.return_value = [
             ("ingots:read", "Read ingots"),
@@ -230,7 +230,7 @@ class TestInteractiveChangePerms(unittest.TestCase):
         mock_prompter_cls,
         mock_db,
     ):
-        from manage_api_consumers import main
+        from manage_api import main
 
         mock_known_perm_options.return_value = [
             ("ingots:read", "Read ingots"),
@@ -257,14 +257,14 @@ class TestInteractiveChangePerms(unittest.TestCase):
         self.assertEqual(args[2], ["members:list"])
 
 
-@patch("manage_api_consumers.db")
-@patch("manage_api_consumers.Prompter")
-@patch("manage_api_consumers.list_consumers")
+@patch("manage_api.db")
+@patch("manage_api.Prompter")
+@patch("manage_api.list_consumers")
 class TestInteractiveMenuValidation(unittest.TestCase):
     def test_reprompts_on_invalid_top_menu(
         self, mock_list_consumers, mock_prompter_cls, mock_db
     ):
-        from manage_api_consumers import main
+        from manage_api import main
 
         mock_list_consumers.return_value = []
 
@@ -283,7 +283,7 @@ class TestInteractiveMenuValidation(unittest.TestCase):
     def test_exits_cleanly_on_quit(
         self, mock_list_consumers, mock_prompter_cls, mock_db
     ):
-        from manage_api_consumers import main
+        from manage_api import main
 
         mock_list_consumers.return_value = []
 

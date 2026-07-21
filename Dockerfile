@@ -35,6 +35,7 @@ FROM runner AS api-prod
 
 COPY --from=builder /usr/local /usr/local
 COPY --chown=apiuser:apiuser api ./api
+COPY --chown=apiuser:apiuser scripts ./scripts
 
 CMD ["python", "-m", "api.main"]
 
