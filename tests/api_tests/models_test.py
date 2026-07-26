@@ -47,6 +47,11 @@ class TestApiAudit(unittest.TestCase):
             "client_ip",
             "user_agent",
             "error",
+            "query_params",
+            "route_template",
+            "response_bytes",
+            "cache_hit",
+            "api_version",
         }
         self.assertEqual(cols, expected)
 

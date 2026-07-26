@@ -14,6 +14,8 @@ from api.schemas.score import (
     ScoreHistoryQueryParams,
     ScoreHistoryResponse,
 )
+from ironforgedcore.cache.score_cache import SCORE_CACHE
+from ironforgedcore.common.normalize import normalize_discord_string
 from ironforgedcore.exceptions.score_exceptions import HiscoresNotFound
 from ironforgedcore.http import HTTP
 from ironforgedcore.services import (
@@ -44,6 +46,12 @@ async def get_player_score(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid player name",
         )
+
+    if bypass_cache:
+        request.state.cache_hit = False
+    else:
+        normalized = normalize_discord_string(input=rsn)
+        request.state.cache_hit = (await SCORE_CACHE.get(normalized)) is not None
 
     score_service = score_service_module.get_score_service(HTTP)
     try:
