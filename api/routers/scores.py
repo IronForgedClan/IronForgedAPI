@@ -28,10 +28,10 @@ from ironforgedcore.services.service_factory import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/players", tags=["scores"])
+router = APIRouter(prefix="/score", tags=["scores"])
 
 
-@router.get("/{rsn}/score", response_model=ApiResponse)
+@router.get("/{rsn}", response_model=ApiResponse)
 async def get_player_score(
     request: Request,
     rsn: str,
@@ -68,7 +68,7 @@ async def get_player_score(
     )
 
 
-@router.get("/{rsn}/score-history", response_model=ApiResponse)
+@router.get("/{rsn}/history", response_model=ApiResponse)
 async def get_player_score_history(
     request: Request,
     rsn: str,

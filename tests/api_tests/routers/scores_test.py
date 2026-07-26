@@ -71,7 +71,7 @@ class TestGetPlayerScore(unittest.IsolatedAsyncioTestCase):
             mock_svc.get_player_score = AsyncMock(return_value=breakdown)
             mock_get_svc.return_value = mock_svc
 
-            response = self.client.get("/players/zezima/score")
+            response = self.client.get("/score/zezima")
 
         self.assertEqual(response.status_code, 200)
         body = response.json()
@@ -92,12 +92,12 @@ class TestGetPlayerScore(unittest.IsolatedAsyncioTestCase):
             mock_svc.get_player_score = AsyncMock(side_effect=HiscoresNotFound())
             mock_get_svc.return_value = mock_svc
 
-            response = self.client.get("/players/nonexistent/score")
+            response = self.client.get("/score/nonexistent")
 
         self.assertEqual(response.status_code, 404)
 
     def test_rejects_long_name(self):
-        response = self.client.get("/players/thisnameistoolongforrunescape/score")
+        response = self.client.get("/score/thisnameistoolongforrunescape")
         self.assertEqual(response.status_code, 400)
 
     def test_perm_denied_403(self):
@@ -105,7 +105,7 @@ class TestGetPlayerScore(unittest.IsolatedAsyncioTestCase):
 
         consumer = make_consumer(perms=["members:read"])
         client = build_test_client(self.app, self.session, consumer)
-        response = client.get("/players/zezima/score")
+        response = client.get("/score/zezima")
         self.assertEqual(response.status_code, 403)
 
 
@@ -128,7 +128,7 @@ class TestGetPlayerScoreHistory(unittest.IsolatedAsyncioTestCase):
                 "ironforgedcore.services.score_history_service.ScoreHistoryService.get_score_history",
                 new=AsyncMock(return_value={7: 100, 30: 200, 90: None}),
             ):
-                response = self.client.get("/players/zezima/score-history?days=7,30,90")
+                response = self.client.get("/score/zezima/history?days=7,30,90")
 
         self.assertEqual(response.status_code, 200)
         body = response.json()
@@ -142,7 +142,7 @@ class TestGetPlayerScoreHistory(unittest.IsolatedAsyncioTestCase):
                 side_effect=MemberNotFoundException("No member with rsn=ghost")
             ),
         ):
-            response = self.client.get("/players/ghost/score-history?days=7")
+            response = self.client.get("/score/ghost/history?days=7")
 
         self.assertEqual(response.status_code, 404)
         body = response.json()
@@ -150,11 +150,11 @@ class TestGetPlayerScoreHistory(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(body["error"]["message"], "No member with rsn=ghost")
 
     def test_rejects_invalid_days(self):
-        response = self.client.get("/players/zezima/score-history?days=abc")
+        response = self.client.get("/score/zezima/history?days=abc")
         self.assertEqual(response.status_code, 400)
 
     def test_rejects_out_of_range_days(self):
-        response = self.client.get("/players/zezima/score-history?days=1000")
+        response = self.client.get("/score/zezima/history?days=1000")
         self.assertEqual(response.status_code, 400)
 
     def test_perm_denied_403(self):
@@ -162,7 +162,7 @@ class TestGetPlayerScoreHistory(unittest.IsolatedAsyncioTestCase):
 
         consumer = make_consumer(perms=["scores:read"])
         client = build_test_client(self.app, self.session, consumer)
-        response = client.get("/players/zezima/score-history?days=7")
+        response = client.get("/score/zezima/history?days=7")
         self.assertEqual(response.status_code, 403)
 
 

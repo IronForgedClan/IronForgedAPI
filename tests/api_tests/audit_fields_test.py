@@ -302,7 +302,7 @@ class TestCacheHit(unittest.TestCase):
 
             client = TestClient(app, raise_server_exceptions=False)
             response = client.get(
-                "/players/zezima/score", headers={"Authorization": "Bearer x"}
+                "/score/zezima", headers={"Authorization": "Bearer x"}
             )
 
             self.assertEqual(response.status_code, 200)
@@ -334,7 +334,7 @@ class TestCacheHit(unittest.TestCase):
 
             client = TestClient(app, raise_server_exceptions=False)
             response = client.get(
-                "/players/zezima/score?bypass_cache=true",
+                "/score/zezima?bypass_cache=true",
                 headers={"Authorization": "Bearer x"},
             )
 

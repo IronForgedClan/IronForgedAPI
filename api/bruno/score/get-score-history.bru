@@ -1,11 +1,11 @@
 meta {
-  name: Get Player Score History
+  name: Get Score History
   type: http
   seq: 2
 }
 
 get {
-  url: {{base_url}}/players/oxore/score-history?days=7,30,90
+  url: {{base_url}}/score/oxore/history?days=7,30,90
   body: none
   auth: none
 }
@@ -29,7 +29,7 @@ docs {
   Path params:
     rsn - the RuneScape name of a registered clan member.
           Set `member_rsn` in your active env (Local/Dev/Prod) or via CLI:
-          bru run api/bruno/players --env Local --env-var member_rsn=Zezima
+          bru run api/bruno/score --env Local --env-var member_rsn=Zezima
   Query params:
     days - comma-separated list of day windows (1-365, default 7,30,90)
   For each period returns the single nearest snapshot (±3 days of target date);

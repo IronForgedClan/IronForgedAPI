@@ -17,8 +17,8 @@ API for the Iron Forged Old School RuneScape clan.
 | GET    | `/members/{member_id}`                     | `members:read`             |
 | GET    | `/members/{member_id}/ingots`              | `ingots:read`              |
 | GET    | `/members/{member_id}/ingots/transactions` | `ingots:read:transactions` |
-| GET    | `/players/{rsn}/score`                     | `scores:read`              |
-| GET    | `/players/{rsn}/score-history`             | `scores:read:history`      |
+| GET    | `/score/{rsn}`                             | `scores:read`              |
+| GET    | `/score/{rsn}/history`                     | `scores:read:history`      |
 
 ## Authentication
 
@@ -40,8 +40,8 @@ consumer.
 | `members:read`             | `GET /members/{member_id}`                     |
 | `ingots:read`              | `GET /members/{member_id}/ingots`              |
 | `ingots:read:transactions` | `GET /members/{member_id}/ingots/transactions` |
-| `scores:read`              | `GET /players/{rsn}/score`                     |
-| `scores:read:history`      | `GET /players/{rsn}/score-history`             |
+| `scores:read`              | `GET /score/{rsn}`                             |
+| `scores:read:history`      | `GET /score/{rsn}/history`                     |
 
 ## Responses
 
@@ -261,7 +261,7 @@ it is a `MemberRef` (internal UUID, Discord id, nickname).
 
 ---
 
-### GET /players/{rsn}/score
+### GET /score/{rsn}
 
 OSRS hiscores breakdown, converted to clan points.
 
@@ -333,7 +333,7 @@ Response 200:
 
 ---
 
-### GET /players/{rsn}/score-history
+### GET /score/{rsn}/history
 
 Historical score snapshots for a registered member, looked up at multiple
 periods. The player must be a clan memeber. This endpoint does not return data
@@ -341,7 +341,7 @@ for arbitrary hiscores players.
 
 Required perm: `scores:read:history`
 
-`rsn` is a osrs name (see `GET /players/{rsn}/score`).
+`rsn` is a osrs name (see `GET /score/{rsn}`).
 
 | Name   | Type   | Default     | Constraints                                                               |
 | ------ | ------ | ----------- | ------------------------------------------------------------------------- |
