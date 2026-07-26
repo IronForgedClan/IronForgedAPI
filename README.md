@@ -5,7 +5,7 @@
 <a href="https://github.com/psf/black"><img alt="Code style: Black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
 
-A REST API exposing various member data points to authenticated consumers for the Iron Forged Old School RuneScape clan.
+API for the Iron Forged Old School RuneScape clan.
 
 ## Endpoints
 
@@ -19,14 +19,32 @@ A REST API exposing various member data points to authenticated consumers for th
 | GET    | `/players/{rsn}/score`                     | `scores:read`              |
 | GET    | `/players/{rsn}/score-history`             | `scores:read:history`      |
 
-> **Note:** `/health` is public and does not require authentication. It is
-> intended for load balancers, version probes, and operational monitoring.
+## Authentication
 
-## Response shapes
+Every request to a private endpoint needs a `Bearer` token in the
+`Authorization` header:
 
-### Success
+```sh
+curl -H "Authorization: Bearer iron_<token>" http://localhost:8080/members
+```
 
-All successful responses share this envelope:
+## Permissions
+
+Permissions are `resource:action` strings, stored as a JSON array on each
+consumer.
+
+| Perm                       | Grants access to                               |
+| -------------------------- | ---------------------------------------------- |
+| `members:list`             | `GET /members`                                 |
+| `members:read`             | `GET /members/{member_id}`                     |
+| `ingots:read`              | `GET /members/{member_id}/ingots`              |
+| `ingots:read:transactions` | `GET /members/{member_id}/ingots/transactions` |
+| `scores:read`              | `GET /players/{rsn}/score`                     |
+| `scores:read:history`      | `GET /players/{rsn}/score-history`             |
+
+## Responses
+
+Success:
 
 ```json
 {
@@ -38,10 +56,7 @@ All successful responses share this envelope:
 }
 ```
 
-### Error
-
-All error responses share this envelope. The `code` is a stable string; the
-`message` is human-readable and may change.
+Error:
 
 ```json
 {
@@ -56,70 +71,59 @@ All error responses share this envelope. The `code` is a stable string; the
 }
 ```
 
-### Error codes
+`code` is a stable string. `message` is human-readable and can change.
 
-| Status | `code`               | When                                                                     |
-| ------ | -------------------- | ------------------------------------------------------------------------ |
-| 400    | `bad_request`        | Path/query params failed domain validation (e.g. bad `rsn`, bad `days`). |
-| 401    | `unauthorized`       | Missing, malformed, or revoked/disabled bearer token.                    |
-| 403    | `forbidden`          | Bearer is valid but missing the required perm.                           |
-| 404    | `not_found`          | Target member, player, or hiscores record does not exist.                |
-| 405    | `method_not_allowed` | Method not supported for the given path.                                 |
-| 422    | `validation_error`   | Request validation failed (query type, range, etc.).                     |
-| 500    | `internal_error`     | Unhandled server-side exception.                                         |
+| Status | `code`               | When                                               |
+| ------ | -------------------- | -------------------------------------------------- |
+| 400    | `bad_request`        | Bad path or query params.                          |
+| 401    | `unauthorized`       | Missing, malformed, or revoked token.              |
+| 403    | `forbidden`          | Token is valid but missing the required perm.      |
+| 404    | `not_found`          | Member, player, or hiscores record does not exist. |
+| 405    | `method_not_allowed` | Method not supported for the given path.           |
+| 422    | `validation_error`   | Request validation failed.                         |
+| 429    | `rate_limited`       | Per-consumer per-minute limit exceeded.            |
+| 500    | `internal_error`     | Unhandled server-side exception.                   |
 
-## Request correlation
+Every response also carries an `X-Request-ID` header with the same value as
+`meta.request_id`. If having issues, share this ID to help with debugging.
 
-Every response (success or error) carries a `meta.request_id`. The same id is
-also returned in the `X-Request-ID` response header and is persisted on the
-`api_audit` row for the request. When reporting an issue, share the
-`X-Request-ID` value to help debugging.
+## Rate limiting
 
-## Endpoint reference
+Per-consumer per-route limit, 30 requests per minute by default. 429 responses
+use the standard response envelope and include a `Retry-After` header.
+
+## Endpoints
 
 ### GET /health
 
-Public health probe. Pings the database.
+Pings the database.
 
-**Required perm:** none
+Required perm: none
 
-**Response - 200 (healthy):**
+Response 200:
 
 ```json
 {
     "data": {
         "status": "ok",
         "db": "ok",
-        "version": "1.2.3",
-        "environment": "dev"
-    },
-    "meta": { "request_id": "…", "timestamp": "…" }
-}
-```
-
-**Response - 503 (DB unreachable):**
-
-```json
-{
-    "data": {
-        "status": "degraded",
-        "db": "error",
-        "version": "1.2.3",
+        "version": "1.0.0",
         "environment": "prod"
     },
-    "meta": { "request_id": "…", "timestamp": "…" }
+    "meta": { "request_id": "...", "timestamp": "..." }
 }
 ```
+
+Returns 503 with `"status": "degraded"` and `"db": "error"` when the database is
+unreachable.
 
 ---
 
 ### GET /members
 
-Paginated list of members. Default filter returns only active members.
+Paginated member list. Default filter returns active members only.
 
-**Required perm:** `members:list`
-
-**Query parameters:**
+Required perm: `members:list`
 
 | Name     | Type   | Default  | Constraints                                              |
 | -------- | ------ | -------- | -------------------------------------------------------- |
@@ -129,7 +133,7 @@ Paginated list of members. Default filter returns only active members.
 | `rank`   | string | _none_   | A `RANK` enum value, e.g. `Iron`, `Dragon`, `Myth`       |
 | `filter` | string | `active` | `active`, `booster`, `prospect`, `blacklisted`, `banned` |
 
-**Response - 200:**
+Response 200:
 
 ```json
 {
@@ -152,31 +156,7 @@ Paginated list of members. Default filter returns only active members.
         "limit": 100,
         "offset": 0
     },
-    "meta": { "request_id": "…", "timestamp": "…" }
-}
-```
-
-**Response - 401 (no token):**
-
-```json
-{
-    "error": {
-        "code": "unauthorized",
-        "message": "Missing Authorization header"
-    },
-    "meta": { "request_id": "…", "timestamp": "…" }
-}
-```
-
-**Response - 403 (missing perm):**
-
-```json
-{
-    "error": {
-        "code": "forbidden",
-        "message": "Missing required permission: members:list"
-    },
-    "meta": { "request_id": "…", "timestamp": "…" }
+    "meta": { "request_id": "...", "timestamp": "..." }
 }
 ```
 
@@ -184,17 +164,12 @@ Paginated list of members. Default filter returns only active members.
 
 ### GET /members/{member_id}
 
-Fetch a single member by their Discord snowflake **or** internal UUID.
+Single member by Discord id or internal UUID. Numeric path values match against
+`discord_id`; non-numeric values match against the internal UUID.
 
-**Required perm:** `members:read`
+Required perm: `members:read`
 
-**Path parameters:**
-
-| Name        | Type   | Description                                                                        |
-| ----------- | ------ | ---------------------------------------------------------------------------------- |
-| `member_id` | string | Numeric value -> looked up as `discord_id`. Non-numeric -> looked up as `id` (UUID). |
-
-**Response - 200:**
+Response 200:
 
 ```json
 {
@@ -210,19 +185,7 @@ Fetch a single member by their Discord snowflake **or** internal UUID.
         "is_blacklisted": false,
         "is_banned": false
     },
-    "meta": { "request_id": "…", "timestamp": "…" }
-}
-```
-
-**Response - 404 (no such member):**
-
-```json
-{
-    "error": {
-        "code": "not_found",
-        "message": "No member with id=123456789012345678"
-    },
-    "meta": { "request_id": "…", "timestamp": "…" }
+    "meta": { "request_id": "...", "timestamp": "..." }
 }
 ```
 
@@ -230,44 +193,34 @@ Fetch a single member by their Discord snowflake **or** internal UUID.
 
 ### GET /members/{member_id}/ingots
 
-Current ingot balance for a member.
+Current ingot balance. `member_id` is a Discord id or internal UUID.
 
-**Required perm:** `ingots:read`
+Required perm: `ingots:read`
 
-**Path parameters:** see [GET /members/{member_id}](#get-membersmember_id).
-
-**Response - 200:**
+Response 200:
 
 ```json
 {
-    "data": {
-        "nickname": "Zezima",
-        "ingots": 4200
-    },
-    "meta": { "request_id": "…", "timestamp": "…" }
+    "data": { "nickname": "Zezima", "ingots": 4200 },
+    "meta": { "request_id": "...", "timestamp": "..." }
 }
 ```
-
-**Response - 404:** see [GET /members/{member_id}](#get-membersmember_id).
 
 ---
 
 ### GET /members/{member_id}/ingots/transactions
 
-Recent ingot add/remove transactions for a member, newest first.
+Recent add/remove ingot transactions, newest first. `member_id` is a Discord id
+or UUID.
 
-**Required perm:** `ingots:read:transactions`
+Required perm: `ingots:read:transactions`
 
-**Path parameters:** see [GET /members/{member_id}](#get-membersmember_id).
+| Name    | Type | Default | Constraints                                           |
+| ------- | ---- | ------- | ----------------------------------------------------- |
+| `days`  | int  | _none_  | 1-365. Filter to transactions within the last N days. |
+| `limit` | int  | `50`    | 1-500                                                 |
 
-**Query parameters:**
-
-| Name    | Type | Default | Constraints                                                           |
-| ------- | ---- | ------- | --------------------------------------------------------------------- |
-| `days`  | int  | _none_  | 1-365. If set, only transactions within the last N days are returned. |
-| `limit` | int  | `50`    | 1-500                                                                 |
-
-**Response - 200:**
+Response 200:
 
 ```json
 {
@@ -282,7 +235,7 @@ Recent ingot add/remove transactions for a member, newest first.
                 "admin": {
                     "id": "f0e1d2c3-b4a5-9687-6543-210fedcba987",
                     "discord_id": 111222333444555666,
-                    "nickname": "ModBoss"
+                    "nickname": "BossMan"
                 },
                 "timestamp": "2026-07-01T06:00:00+00:00"
             },
@@ -291,43 +244,37 @@ Recent ingot add/remove transactions for a member, newest first.
                 "change_type": "REMOVE_INGOTS",
                 "previous_value": "4050",
                 "new_value": "4000",
-                "comment": "Raffle tickets",
+                "comment": "Bought raffle tickets",
                 "admin": null,
                 "timestamp": "2026-06-15T18:42:11+00:00"
             }
         ]
     },
-    "meta": { "request_id": "…", "timestamp": "…" }
+    "meta": { "request_id": "...", "timestamp": "..." }
 }
 ```
 
-> `admin` is `null` when the changelog row has no `admin_id` (e.g. system-driven
-> changes). When populated, it is a `MemberRef` containing the admins internal
-> UUID, Discord snowflake, and nickname.
-
-**Response - 404:** see [GET /members/{member_id}](#get-membersmember_id).
+`admin` is `null` when the changelog row has no `admin_id`. This typically means
+the change was initiated by the bot (think automated payroll). When populated,
+it is a `MemberRef` (internal UUID, Discord id, nickname).
 
 ---
 
 ### GET /players/{rsn}/score
 
-Live OSRS hiscores breakdown for a player, converted to in-clan points.
+OSRS hiscores breakdown, converted to clan points.
 
-**Required perm:** `scores:read`
+Required perm: `scores:read`
 
-**Path parameters:**
+| Name  | Type   | Description                                           |
+| ----- | ------ | ----------------------------------------------------- |
+| `rsn` | string | RuneScape name. 1-12 characters. `400` outside range. |
 
-| Name  | Type   | Description                                                            |
-| ----- | ------ | ---------------------------------------------------------------------- |
-| `rsn` | string | The RuneScape name. 1-12 characters. Returns `400` outside this range. |
+| Name           | Type | Default | Description                                            |
+| -------------- | ---- | ------- | ------------------------------------------------------ |
+| `bypass_cache` | bool | `false` | Skip the score cache and force a fresh hiscores fetch. |
 
-**Query parameters:**
-
-| Name           | Type | Default | Description                                                       |
-| -------------- | ---- | ------- | ----------------------------------------------------------------- |
-| `bypass_cache` | bool | `false` | Skip the in-process score cache and force a fresh hiscores fetch. |
-
-**Response - 200:**
+Response 200:
 
 ```json
 {
@@ -376,59 +323,34 @@ Live OSRS hiscores breakdown for a player, converted to in-clan points.
         ],
         "total_points": 12345
     },
-    "meta": { "request_id": "…", "timestamp": "…" }
+    "meta": { "request_id": "...", "timestamp": "..." }
 }
 ```
 
-`total_points` is the sum of `points` across all skills, clues, raids, and
-bosses. The `Overall` skill is excluded.
-
-**Response - 400 (bad rsn):**
-
-```json
-{
-    "error": { "code": "bad_request", "message": "Invalid player name" },
-    "meta": { "request_id": "…", "timestamp": "…" }
-}
-```
-
-**Response - 404 (not on hiscores):**
-
-```json
-{
-    "error": {
-        "code": "not_found",
-        "message": "Player not found on hiscores: nope"
-    },
-    "meta": { "request_id": "…", "timestamp": "…" }
-}
-```
+`total_points` sums `points` across all skills, clues, raids, and bosses. The
+`Overall` skill is excluded.
 
 ---
 
 ### GET /players/{rsn}/score-history
 
 Historical score snapshots for a registered member, looked up at multiple
-periods.
+periods. The player must be a clan memeber. This endpoint does not return data
+for arbitrary hiscores players.
 
-**Required perm:** `scores:read:history`
+Required perm: `scores:read:history`
 
-**Path parameters:** `rsn` - see
-[GET /players/{rsn}/score](#get-playersrsnscore). The player must be a
-registered clan member; this endpoint will not return data for arbitrary
-hiscores users.
+`rsn` is a osrs name (see `GET /players/{rsn}/score`).
 
-**Query parameters:**
-
-| Name   | Type   | Default     | Constraints                                                                                       |
-| ------ | ------ | ----------- | ------------------------------------------------------------------------------------------------- |
-| `days` | string | `"7,30,90"` | Comma-separated list of day windows. Each value must be 1-365. Returns `400` if any value is bad. |
+| Name   | Type   | Default     | Constraints                                                               |
+| ------ | ------ | ----------- | ------------------------------------------------------------------------- |
+| `days` | string | `"7,30,90"` | Comma-separated day windows. Each value 1-365. `400` if any value is bad. |
 
 For each requested period, the endpoint returns the single nearest snapshot
-within ±3 days of the target date. If no qualifying snapshot exists, `score` is
+within ~3 days of the target date. If no qualifying snapshot exists, `score` is
 `null`.
 
-**Response - 200:**
+Response 200:
 
 ```json
 {
@@ -440,155 +362,23 @@ within ±3 days of the target date. If no qualifying snapshot exists, `score` is
             { "period_days": 90, "score": 9000, "snapshot_date": null }
         ]
     },
-    "meta": { "request_id": "…", "timestamp": "…" }
-}
-```
-
-> **Note:** `snapshot_date` is currently always `null` - the actual snapshot
-> date is not yet serialized in the response.
-
-**Response - 400 (bad `days`):**
-
-```json
-{
-    "error": {
-        "code": "bad_request",
-        "message": "Each day value must be between 1 and 365"
-    },
-    "meta": { "request_id": "…", "timestamp": "…" }
-}
-```
-
-**Response - 404 (rsn not a registered member):**
-
-```json
-{
-    "error": {
-        "code": "not_found",
-        "message": "No member with rsn=Zezima"
-    },
-    "meta": { "request_id": "…", "timestamp": "…" }
+    "meta": { "request_id": "...", "timestamp": "..." }
 }
 ```
 
 ---
 
-## Quick start
+## Setup
 
-1. Set the API port in `.env`:
-
-   ```sh
-   API_PORT=8080
-   ```
-
-2. Run database migrations:
-
-   ```sh
-   make migrate
-   ```
-
-3. Create a consumer:
-
-   ```sh
-   make api-consumer-interactive
-   ```
-
-   The CLI prints a fresh bearer token once. Copy it immediately.
-
+1. Set the API port in `.env`: `API_PORT=8080`.
+2. Run migrations: `make migrate`.
+3. Create a consumer: `make api-consumer-interactive`. The CLI prints a fresh
+   bearer token once. Copy it.
 4. Hit an endpoint:
 
    ```sh
-   curl -H "Authorization: Bearer iron_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-        http://localhost:8080/members
+   curl -H "Authorization: Bearer iron_<token>" http://localhost:8080/members
    ```
-
-## Authentication
-
-Every request to a non-public endpoint requires a `Bearer` token in the
-`Authorization` header:
-
-```sh
-curl -H "Authorization: Bearer iron_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
-     http://localhost:8080/health
-```
-
-**Token format:** `iron_<43 url-safe base64 chars>`. Generated by
-`secrets.token_urlsafe(32)` (32 bytes of entropy, ~256 bits, base64-encoded).
-
-**Storage:** SHA-256 hash stored in the `api_consumers.token_hash` column. The
-plaintext is shown only once at creation. Rotate the consumer to issue a new
-token.
-
-**Disabled or deleted consumers:** lookups return `401 unauthorized`.
-
-## Permissions
-
-Permissions are granular `resource:action` strings stored as a JSON array on
-each consumer (`api_consumers.perms`).
-
-| Perm                       | Grants access to                               |
-| -------------------------- | ---------------------------------------------- |
-| `meta:read`                | _(reserved - not currently enforced)_          |
-| `members:list`             | `GET /members`                                 |
-| `members:read`             | `GET /members/{member_id}`                     |
-| `ingots:read`              | `GET /members/{member_id}/ingots`              |
-| `ingots:read:transactions` | `GET /members/{member_id}/ingots/transactions` |
-| `scores:read`              | `GET /players/{rsn}/score`                     |
-| `scores:read:history`      | `GET /players/{rsn}/score-history`             |
-
-`/health` is public and requires no perm.
-
-Perms are defined in code at `api/permissions.py`. To add a new perm, add it to
-both the `PERM` enum and the `KNOWN_PERMS` table in this doc, then redeploy.
-
-## Rate limiting
-
-When a request exceeds a limit, we raise `HTTPException(429)` which flows
-through the standard error handler -> audit middleware -> `api_audit` row. The
-429 response uses the standard error envelope (`code: "rate_limited"`) and
-includes a `Retry-After` header giving the seconds until the current minute
-window ends.
-
-## Audit log
-
-Every API request writes one row to the `api_audit` table. Fields captured:
-
-- `timestamp` (indexed)
-- `consumer_id`, `consumer_name`, `consumer_perms` (snapshot of full perms array
-  at request time, so revocations don't break history)
-- `required_perm` (the perm that gated this request, or `null` for public/meta
-  endpoints)
-- `method`, `path` (path only - query string stripped, truncated to 512 chars)
-- `status_code`, `duration_ms`
-- `client_ip` (first hop from `X-Forwarded-For` header if present, else socket
-  address. The header is trusted unconditionally - only deploy behind a proxy
-  that strips inbound `X-Forwarded-For` from untrusted clients.)
-- `user_agent` (truncated to 512 chars)
-- `error` (truncated to 512 chars; only on failures)
-
-## Bruno collection
-
-A [Bruno](https://www.usebruno.com/) collection lives in `api/bruno/`.
-
-## Consumer management
-
-```sh
-make api-consumer-interactive   # guided: create, grant/revoke, enable/disable, rotate, delete
-make api-consumer-list          # print a table of consumers and their perms
-```
-
-Plaintext tokens are only displayed once at creation or rotation. If you lose a
-token, rotate the consumer.
-
-## Permission management
-
-Perms are defined in `api/permissions.py` (`PERM` enum + `KNOWN_PERMS` list).
-The `api-consumer-interactive` flow lets you grant or revoke any of those perms
-by name on a consumer.
-
-To add a new perm: add the value to the `PERM` enum and a `(name, description)`
-entry to `KNOWN_PERMS`, then redeploy. The perm will then be available to grant
-to any consumer.
 
 ## Configuration
 
@@ -599,3 +389,7 @@ to any consumer.
 | `API_TRUSTED_HOSTS` | `127.0.0.1` | Comma-separated trusted reverse-proxy IPs for X-Forwarded-For parsing. |
 | `API_CORS_ORIGINS`  | (empty)     | Comma-separated allowed CORS origins.                                  |
 | `API_RATE_LIMIT`    | `30`        | Per-route per-consumer per-minute. `0` disables.                       |
+
+## Bruno collection
+
+A [Bruno](https://www.usebruno.com/) collection lives in `api/bruno/`.
