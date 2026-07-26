@@ -14,7 +14,6 @@ devenv.lock
 pyrightconfig.json
 LICENSE
 README.md
-API.md
 AGENTS.md
 PLAN.md
 run_tests.py
