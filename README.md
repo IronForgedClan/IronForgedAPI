@@ -1,6 +1,7 @@
 <h1 align="center">Iron Forged API</h1>
 <p align="center">
-<img alt="API Version" src="https://img.shields.io/github/v/release/IronForgedClan/IronForgedApi?include_prereleases&label=api">
+<img alt="API (latest)" src="https://img.shields.io/ghcr/v/IronForgedClan/IronForgedApi/ironforgedapi/latest?label=api%20%28latest%29&sort=semver">
+<img alt="API (staging)" src="https://img.shields.io/ghcr/v/IronForgedClan/IronForgedApi/ironforgedapi/staging?label=api%20%28staging%29&sort=semver&include_prereleases">
 <a href="https://github.com/IronForgedClan/IronForgedApi/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/IronForgedClan/IronForgedApi"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: Black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
