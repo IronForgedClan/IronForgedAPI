@@ -366,7 +366,7 @@ Response 200:
 ### GET /score/{rsn}/history
 
 Historical score snapshots for a registered member, looked up at multiple
-periods. The player must be a clan memeber.
+periods. The player must be a clan member.
 
 Required perm: `scores:read:history`
 
