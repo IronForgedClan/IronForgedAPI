@@ -26,7 +26,7 @@ Every request to a private endpoint needs a `Bearer` token in the
 `Authorization` header:
 
 ```sh
-curl -H "Authorization: Bearer iron_<token>" http://localhost:8080/members
+curl -H "Authorization: Bearer <token>" http://localhost:8080/members
 ```
 
 ## Permissions
