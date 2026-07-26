@@ -50,6 +50,7 @@ class ActivityScoreSchema(BaseModel):
 
 class PlayerScoreResponse(BaseModel):
     player_name: str
+    rank: str
     skills: list[SkillScoreSchema]
     clues: list[ActivityScoreSchema]
     raids: list[ActivityScoreSchema]
@@ -58,7 +59,7 @@ class PlayerScoreResponse(BaseModel):
 
     @classmethod
     def from_breakdown(
-        cls, player_name: str, breakdown: ScoreBreakdown
+        cls, player_name: str, breakdown: ScoreBreakdown, rank: str
     ) -> "PlayerScoreResponse":
         points = sum(s.points for s in breakdown.skills)
         points += sum(
@@ -66,11 +67,28 @@ class PlayerScoreResponse(BaseModel):
         )
         return cls(
             player_name=player_name,
+            rank=rank,
             skills=[SkillScoreSchema.from_skill(s) for s in breakdown.skills],
             clues=[ActivityScoreSchema.from_activity(a) for a in breakdown.clues],
             raids=[ActivityScoreSchema.from_activity(a) for a in breakdown.raids],
             bosses=[ActivityScoreSchema.from_activity(a) for a in breakdown.bosses],
             total_points=points,
+        )
+
+
+class PlayerScoreSummary(BaseModel):
+    player_name: str
+    total_points: int
+    rank: str
+
+    @classmethod
+    def from_summary(
+        cls, player_name: str, total_points: int, rank: str
+    ) -> "PlayerScoreSummary":
+        return cls(
+            player_name=player_name,
+            total_points=total_points,
+            rank=rank,
         )
 
 

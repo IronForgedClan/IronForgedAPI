@@ -1,11 +1,11 @@
 meta {
-  name: Get Score (Bypass Cache)
+  name: Get Score Breakdown (Bypass Cache)
   type: http
   seq: 3
 }
 
 get {
-  url: {{base_url}}/score/oxore?bypass_cache=true
+  url: {{base_url}}/score/oxore/breakdown?bypass_cache=true
   body: none
   auth: none
 }
@@ -26,13 +26,14 @@ tests {
     if (res.status === 200) {
       expect(res.body.data).to.have.property("player_name");
       expect(res.body.data).to.have.property("total_points");
+      expect(res.body.data).to.have.property("rank");
     }
   });
 }
 
 docs {
   Requires perm: scores:read
-  Same as Get Score, but with bypass_cache=true to skip the
+  Same as Get Score Breakdown, but with bypass_cache=true to skip the
   in-process score cache and force a fresh hiscores fetch.
   Useful for verifying that cache invalidation works end-to-end.
 }

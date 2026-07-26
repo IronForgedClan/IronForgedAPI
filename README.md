@@ -18,6 +18,7 @@ API for the Iron Forged Old School RuneScape clan.
 | GET    | `/members/{member_id}/ingots`              | `ingots:read`              |
 | GET    | `/members/{member_id}/ingots/transactions` | `ingots:read:transactions` |
 | GET    | `/score/{rsn}`                             | `scores:read`              |
+| GET    | `/score/{rsn}/breakdown`                   | `scores:read`              |
 | GET    | `/score/{rsn}/history`                     | `scores:read:history`      |
 
 ## Authentication
@@ -41,6 +42,7 @@ consumer.
 | `ingots:read`              | `GET /members/{member_id}/ingots`              |
 | `ingots:read:transactions` | `GET /members/{member_id}/ingots/transactions` |
 | `scores:read`              | `GET /score/{rsn}`                             |
+| `scores:read`              | `GET /score/{rsn}/breakdown`                   |
 | `scores:read:history`      | `GET /score/{rsn}/history`                     |
 
 ## Responses
@@ -263,7 +265,8 @@ it is a `MemberRef` (internal UUID, Discord id, nickname).
 
 ### GET /score/{rsn}
 
-OSRS hiscores breakdown, converted to clan points.
+Compute score and rank for a player. For full breakdown, see
+`GET /score/{rsn}/breakdown`.
 
 Required perm: `scores:read`
 
@@ -281,6 +284,36 @@ Response 200:
 {
     "data": {
         "player_name": "Zezima",
+        "total_points": 12345,
+        "rank": "Rune"
+    },
+    "meta": { "request_id": "...", "timestamp": "..." }
+}
+```
+
+---
+
+### GET /score/{rsn}/breakdown
+
+OSRS hiscores breakdown converted to clan points.
+
+Required perm: `scores:read`
+
+| Name  | Type   | Description                                           |
+| ----- | ------ | ----------------------------------------------------- |
+| `rsn` | string | RuneScape name. 1-12 characters. `400` outside range. |
+
+| Name           | Type | Default | Description                                            |
+| -------------- | ---- | ------- | ------------------------------------------------------ |
+| `bypass_cache` | bool | `false` | Skip the score cache and force a fresh hiscores fetch. |
+
+Response 200:
+
+```json
+{
+    "data": {
+        "player_name": "Zezima",
+        "rank": "Rune",
         "skills": [
             {
                 "name": "Attack",
@@ -328,16 +361,12 @@ Response 200:
 }
 ```
 
-`total_points` sums `points` across all skills, clues, raids, and bosses. The
-`Overall` skill is excluded.
-
 ---
 
 ### GET /score/{rsn}/history
 
 Historical score snapshots for a registered member, looked up at multiple
-periods. The player must be a clan memeber. This endpoint does not return data
-for arbitrary hiscores players.
+periods. The player must be a clan memeber.
 
 Required perm: `scores:read:history`
 

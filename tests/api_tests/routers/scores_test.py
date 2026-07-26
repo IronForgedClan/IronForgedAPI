@@ -45,6 +45,15 @@ def _make_breakdown() -> ScoreBreakdown:
     )
 
 
+def _make_breakdown_with_total(total_points: int) -> ScoreBreakdown:
+    return ScoreBreakdown(
+        skills=[_make_skill("Attack", total_points)],
+        clues=[],
+        raids=[],
+        bosses=[],
+    )
+
+
 def _make_member_with_rsn(rsn: str = "zezima", discord_id: int = 12345) -> MagicMock:
     m = MagicMock(spec=Member)
     m.rsn = rsn
@@ -62,7 +71,7 @@ class TestGetPlayerScore(unittest.IsolatedAsyncioTestCase):
         self.app = build_test_app(include_routers=[router])
         self.client = build_test_client(self.app, self.session, self.consumer)
 
-    async def test_returns_player_score(self):
+    async def test_returns_summary(self):
         breakdown = _make_breakdown()
         with patch(
             "ironforgedcore.services.score_service.get_score_service"
@@ -77,10 +86,39 @@ class TestGetPlayerScore(unittest.IsolatedAsyncioTestCase):
         body = response.json()
         self.assertEqual(body["data"]["player_name"], "zezima")
         self.assertEqual(body["data"]["total_points"], 100 + 150 + 25 + 75 + 50)
-        self.assertEqual(len(body["data"]["skills"]), 2)
-        self.assertEqual(len(body["data"]["clues"]), 1)
-        self.assertEqual(len(body["data"]["raids"]), 1)
-        self.assertEqual(len(body["data"]["bosses"]), 1)
+        self.assertEqual(body["data"]["rank"], RANK.IRON)
+        self.assertNotIn("skills", body["data"])
+        self.assertNotIn("clues", body["data"])
+        self.assertNotIn("raids", body["data"])
+        self.assertNotIn("bosses", body["data"])
+
+    async def test_rank_god(self):
+        breakdown = _make_breakdown_with_total(20_000)
+        with patch(
+            "ironforgedcore.services.score_service.get_score_service"
+        ) as mock_get_svc:
+            mock_svc = MagicMock()
+            mock_svc.get_player_score = AsyncMock(return_value=breakdown)
+            mock_get_svc.return_value = mock_svc
+
+            response = self.client.get("/score/zezima")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["rank"], RANK.GOD)
+
+    async def test_rank_iron(self):
+        breakdown = _make_breakdown_with_total(0)
+        with patch(
+            "ironforgedcore.services.score_service.get_score_service"
+        ) as mock_get_svc:
+            mock_svc = MagicMock()
+            mock_svc.get_player_score = AsyncMock(return_value=breakdown)
+            mock_get_svc.return_value = mock_svc
+
+            response = self.client.get("/score/zezima")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["data"]["rank"], RANK.IRON)
 
     async def test_hiscores_not_found_404(self):
         from ironforgedcore.exceptions.score_exceptions import HiscoresNotFound
@@ -106,6 +144,63 @@ class TestGetPlayerScore(unittest.IsolatedAsyncioTestCase):
         consumer = make_consumer(perms=["members:read"])
         client = build_test_client(self.app, self.session, consumer)
         response = client.get("/score/zezima")
+        self.assertEqual(response.status_code, 403)
+
+
+class TestGetPlayerScoreBreakdown(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        from api.routers.scores import router
+
+        self.session = AsyncMock(spec=AsyncSession)
+        self.consumer = make_consumer(perms=["scores:read"])
+        self.app = build_test_app(include_routers=[router])
+        self.client = build_test_client(self.app, self.session, self.consumer)
+
+    async def test_returns_breakdown(self):
+        breakdown = _make_breakdown()
+        with patch(
+            "ironforgedcore.services.score_service.get_score_service"
+        ) as mock_get_svc:
+            mock_svc = MagicMock()
+            mock_svc.get_player_score = AsyncMock(return_value=breakdown)
+            mock_get_svc.return_value = mock_svc
+
+            response = self.client.get("/score/zezima/breakdown")
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["data"]["player_name"], "zezima")
+        self.assertEqual(body["data"]["total_points"], 100 + 150 + 25 + 75 + 50)
+        self.assertEqual(body["data"]["rank"], RANK.IRON)
+        self.assertEqual(len(body["data"]["skills"]), 2)
+        self.assertEqual(len(body["data"]["clues"]), 1)
+        self.assertEqual(len(body["data"]["raids"]), 1)
+        self.assertEqual(len(body["data"]["bosses"]), 1)
+
+    async def test_hiscores_not_found_404(self):
+        from ironforgedcore.exceptions.score_exceptions import HiscoresNotFound
+
+        with patch(
+            "ironforgedcore.services.score_service.get_score_service"
+        ) as mock_get_svc:
+            mock_svc = MagicMock()
+            mock_svc.get_player_score = AsyncMock(side_effect=HiscoresNotFound())
+            mock_get_svc.return_value = mock_svc
+
+            response = self.client.get("/score/nonexistent/breakdown")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_rejects_long_name(self):
+        response = self.client.get("/score/thisnameistoolongforrunescape/breakdown")
+        self.assertEqual(response.status_code, 400)
+
+    def test_perm_denied_403(self):
+        from api.routers.scores import router
+
+        consumer = make_consumer(perms=["members:read"])
+        client = build_test_client(self.app, self.session, consumer)
+        response = client.get("/score/zezima/breakdown")
         self.assertEqual(response.status_code, 403)
 
 

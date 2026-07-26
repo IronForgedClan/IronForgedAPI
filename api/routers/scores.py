@@ -11,13 +11,16 @@ from api.rate_limit import rate_limit
 from api.schemas.common import ApiResponse, ResponseMeta
 from api.schemas.score import (
     PlayerScoreResponse,
+    PlayerScoreSummary,
     ScoreHistoryQueryParams,
     ScoreHistoryResponse,
 )
 from ironforgedcore.cache.score_cache import SCORE_CACHE
 from ironforgedcore.common.normalize import normalize_discord_string
+from ironforgedcore.common.ranks import get_rank_from_points
 from ironforgedcore.exceptions.score_exceptions import HiscoresNotFound
 from ironforgedcore.http import HTTP
+from ironforgedcore.models.score import ScoreBreakdown
 from ironforgedcore.services import (
     score_service as score_service_module,
 )
@@ -29,6 +32,33 @@ from ironforgedcore.services.service_factory import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/score", tags=["scores"])
+
+
+def _compute_total_points(breakdown: ScoreBreakdown) -> int:
+    points = sum(s.points for s in breakdown.skills)
+    points += sum(
+        a.points for a in (breakdown.clues + breakdown.raids + breakdown.bosses)
+    )
+    return points
+
+
+async def _apply_cache_hit(request: Request, rsn: str, bypass_cache: bool) -> None:
+    if bypass_cache:
+        request.state.cache_hit = False
+    else:
+        normalized = normalize_discord_string(input=rsn)
+        request.state.cache_hit = (await SCORE_CACHE.get(normalized)) is not None
+
+
+async def _fetch_breakdown(rsn: str, bypass_cache: bool) -> ScoreBreakdown:
+    score_service = score_service_module.get_score_service(HTTP)
+    try:
+        return await score_service.get_player_score(rsn, bypass_cache)
+    except HiscoresNotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Player not found on hiscores: {rsn}",
+        )
 
 
 @router.get("/{rsn}", response_model=ApiResponse)
@@ -47,23 +77,44 @@ async def get_player_score(
             detail="Invalid player name",
         )
 
-    if bypass_cache:
-        request.state.cache_hit = False
-    else:
-        normalized = normalize_discord_string(input=rsn)
-        request.state.cache_hit = (await SCORE_CACHE.get(normalized)) is not None
-
-    score_service = score_service_module.get_score_service(HTTP)
-    try:
-        breakdown = await score_service.get_player_score(rsn, bypass_cache)
-    except HiscoresNotFound:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Player not found on hiscores: {rsn}",
-        )
+    await _apply_cache_hit(request, rsn, bypass_cache)
+    breakdown = await _fetch_breakdown(rsn, bypass_cache)
+    total_points = _compute_total_points(breakdown)
+    rank = get_rank_from_points(total_points)
 
     return ApiResponse(
-        data=PlayerScoreResponse.from_breakdown(rsn, breakdown).model_dump(mode="json"),
+        data=PlayerScoreSummary.from_summary(rsn, total_points, rank).model_dump(
+            mode="json"
+        ),
+        meta=ResponseMeta(request_id=request.state.request_id),
+    )
+
+
+@router.get("/{rsn}/breakdown", response_model=ApiResponse)
+async def get_player_breakdown(
+    request: Request,
+    rsn: str,
+    bypass_cache: bool = Query(default=False),
+    consumer: ApiConsumer = Depends(get_current_consumer),
+    _perm: None = Depends(requires_perm(PERM.SCORES_READ)),
+    _: None = Depends(rate_limit()),
+):
+
+    if not rsn or len(rsn) > 12:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid player name",
+        )
+
+    await _apply_cache_hit(request, rsn, bypass_cache)
+    breakdown = await _fetch_breakdown(rsn, bypass_cache)
+    total_points = _compute_total_points(breakdown)
+    rank = get_rank_from_points(total_points)
+
+    return ApiResponse(
+        data=PlayerScoreResponse.from_breakdown(rsn, breakdown, rank).model_dump(
+            mode="json"
+        ),
         meta=ResponseMeta(request_id=request.state.request_id),
     )
 
