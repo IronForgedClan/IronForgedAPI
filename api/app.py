@@ -10,6 +10,7 @@ from api.database_init import initialize_database
 from api.errors import install_error_handlers
 from api.routers import ingots, members, meta, scores
 from ironforgedcore.logging_config import get_logger_instance
+from ironforgedcore.storage.data import load_and_set
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     get_logger_instance()
+    load_and_set("data")
     await initialize_database()
     yield
 
