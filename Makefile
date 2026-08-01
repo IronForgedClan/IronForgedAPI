@@ -27,7 +27,8 @@ down-all:
 	docker compose down
 
 test:
-	docker compose run --rm api python run_tests.py
+	uv sync --project api --extra dev
+	uv run --project api python run_tests.py
 
 format:
 	python -m black .
@@ -68,4 +69,14 @@ clean:
 	docker compose rm -f
 	docker rmi ironforgedapi:prod
 	docker system prune -f --volumes
+	@echo "Removing local build artifacts..."
+	rm -rf dist/ build/ *.egg-info
+	find . -type d -name "*.egg-info" \
+		-not -path "./.venv/*" \
+		-not -path "./.devenv/*" \
+		-exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name "__pycache__" \
+		-not -path "./.venv/*" \
+		-not -path "./.devenv/*" \
+		-exec rm -rf {} + 2>/dev/null || true
 	@echo "Cleanup complete!"
