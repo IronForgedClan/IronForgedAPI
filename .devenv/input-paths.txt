@@ -1,0 +1,11 @@
+/home/barnz/Projects/IronForgedAPI/.devenv/bootstrap/bootstrapLib.nix
+/home/barnz/Projects/IronForgedAPI/.devenv/bootstrap/default.nix
+/home/barnz/Projects/IronForgedAPI/.devenv/bootstrap/resolve-lock.nix
+/home/barnz/Projects/IronForgedAPI/devenv.local.nix
+/home/barnz/Projects/IronForgedAPI/devenv.lock
+/home/barnz/Projects/IronForgedAPI/devenv.nix
+/home/barnz/Projects/IronForgedAPI/devenv.yaml
+/home/barnz/.config/nixpkgs/overlays
+/home/barnz/.config/nixpkgs/overlays.nix
+/home/barnz/Projects/IronForgedAPI/.env
+/home/barnz/Projects/IronForgedAPI/api/pyproject.toml

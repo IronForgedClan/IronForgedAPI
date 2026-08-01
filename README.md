@@ -400,6 +400,16 @@ Response 200:
 
 ## Setup
 
+The api uses [uv](https://docs.astral.sh/uv/) as its package manager.
+Install uv on your host:
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Dependencies are declared in `api/pyproject.toml` and pinned via
+`api/uv.lock`.
+
 1. Set the API port in `.env`: `API_PORT=8080`.
 2. Run migrations: `make migrate`.
 3. Create a consumer: `make api-consumer-interactive`. The CLI prints a fresh

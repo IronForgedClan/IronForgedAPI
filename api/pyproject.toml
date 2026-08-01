@@ -1,7 +1,7 @@
 [project]
 name = "ironforgedapi"
-version = "1.0.0"
-description = "REST API for the Iron Forged Old School RuneScape clan"
+version = "1.1.0"
+description = "API for the Iron Forged Old School RuneScape clan"
 requires-python = ">=3.13"
 dependencies = [
     "ironforgedcore @ git+https://github.com/ironforgedclan/ironforgedcore.git@v0.3.0",
@@ -19,8 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "build",
-    "twine",
+    "uv",
 ]
 
 [build-system]

@@ -179,16 +179,9 @@ state.json
 service.json.live
 service.json.staging
 ironforged_bot.db
-.devenv
-.devenv.flake.nix
 
 # Data files
 data/*.json
-
-# Devenv
-.devenv*
-devenv.local.nix
-devenv.local.yaml
 
 # direnv
 .direnv

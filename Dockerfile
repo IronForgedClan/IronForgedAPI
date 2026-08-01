@@ -9,12 +9,13 @@ RUN apk add --no-cache \
     libffi-dev \
     git
 
-RUN pip install --no-cache-dir --upgrade pip
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /build
 
 COPY api ./api
-RUN pip install --no-cache-dir ./api \
+RUN uv pip install --system ./api \
+ && uv pip install --system "./api[dev]" \
  && find /usr/local -name '__pycache__' -exec rm -rf {} + 2>/dev/null; \
     find /usr/local -name '*.egg-info' -exec rm -rf {} + 2>/dev/null; \
     rm -rf /usr/local/lib/python3.13/site-packages/pip

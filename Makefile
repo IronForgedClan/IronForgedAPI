@@ -2,7 +2,7 @@
 # Override the path: make up BOT_DIR=/path/to/IronForgedBot
 BOT_DIR ?= ../IronForgedBot
 
-.PHONY: up up-prod down down-all test format shell migrate revision downgrade build-prod rmi-prod clean api-management db-logs db-shell
+.PHONY: up up-prod down down-all test format shell migrate revision downgrade update-deps build-prod rmi-prod clean api-management db-logs db-shell
 
 up:
 	@if [ ! -d "$(BOT_DIR)" ]; then \
@@ -46,6 +46,10 @@ downgrade:
 
 build-prod:
 	docker compose build api_prod
+
+update-deps:
+	uv lock --directory api --upgrade
+	docker compose build api
 
 rmi-prod:
 	docker rmi ironforgedapi:prod
