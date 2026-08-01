@@ -35,4 +35,4 @@ jobs:
               run: uv sync --project api --extra dev
 
             - name: Run tests
-              run: uv run --project api python ../run_tests.py
+              run: uv run --project api python run_tests.py
