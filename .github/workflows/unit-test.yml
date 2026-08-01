@@ -25,12 +25,14 @@ jobs:
 
             - name: Install uv
               uses: astral-sh/setup-uv@v1
+              with:
+                  version: "0.12.1"
 
             - name: Check lock is in sync
               run: uv lock --check --directory api
 
             - name: Install dependencies
-              run: uv pip install --system -e "./api[dev]"
+              run: uv sync --project api --extra dev
 
             - name: Run tests
-              run: python run_tests.py
+              run: uv run --project api python ../run_tests.py
