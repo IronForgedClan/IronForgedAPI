@@ -7,15 +7,15 @@ meta {
 get {
   url: {{base_url}}/score/oxore/history?days=7,30,90
   body: none
-  auth: none
+  auth: bearer
 }
 
 params:query {
   days: 7,30,90
 }
 
-headers {
-  Authorization: Bearer {{token}}
+auth:bearer {
+  token: {{token}}
 }
 
 tests {

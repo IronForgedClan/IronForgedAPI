@@ -8,7 +8,9 @@ services:
             target: api-dev
         image: ironforgedapi:dev
         restart: unless-stopped
-        env_file: .env
+        env_file:
+            - path: .env
+              required: false
         environment:
             DATABASE_URL: mysql+aiomysql://${DB_USER}:${DB_PASS}@db/${DB_NAME}
             API_HOST: 0.0.0.0
@@ -29,7 +31,9 @@ services:
         restart: unless-stopped
         working_dir: /app
         command: ["python", "-m", "api.main"]
-        env_file: .env
+        env_file:
+            - path: .env
+              required: false
         environment:
             DATABASE_URL: mysql+aiomysql://${DB_USER}:${DB_PASS}@db/${DB_NAME}
             API_HOST: 0.0.0.0

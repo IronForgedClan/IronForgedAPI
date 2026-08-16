@@ -7,18 +7,11 @@ meta {
 get {
   url: {{base_url}}/members?rank=Dragon
   body: none
-  auth: none
+  auth: bearer
 }
 
-headers {
-  Authorization: Bearer {{token}}
-}
-
-docs {
-  Requires perm: members:list
-  Same as List Members, with rank=Dragon to restrict to members of a given rank.
-  Other valid rank values match the RANK enum (Iron, Bronze, Steel, Mithril,
-  Adamant, Rune, Dragon, etc.).
+auth:bearer {
+  token: {{token}}
 }
 
 tests {
@@ -34,4 +27,11 @@ tests {
       expect(m.rank).to.equal("Dragon");
     });
   });
+}
+
+docs {
+  Requires perm: members:list
+  Same as List Members, with rank=Dragon to restrict to members of a given rank.
+  Other valid rank values match the RANK enum (Iron, Bronze, Steel, Mithril,
+  Adamant, Rune, Dragon, etc.).
 }

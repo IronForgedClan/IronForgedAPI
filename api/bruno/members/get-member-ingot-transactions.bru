@@ -5,26 +5,17 @@ meta {
 }
 
 get {
-  url: {{base_url}}/members/123456789012345678/ingots/transactions?limit=50
+  url: {{base_url}}/members/12e74b89-1ead-4bfc-bc98-8f7764c6335e/ingots/transactions?limit=50
   body: none
-  auth: none
+  auth: bearer
 }
 
-headers {
-  Authorization: Bearer {{token}}
+params:query {
+  limit: 50
 }
 
-docs {
-  Requires perm: ingots:read:transactions
-  Path params:
-    member_id - numeric value is looked up as Discord snowflake;
-                non-numeric value is looked up as internal member UUID.
-  Query params:
-    days  - optional, filter to last N days (1-365)
-    limit - page size (1-500, default 50)
-  Returns ADD_INGOTS and REMOVE_INGOTS changelog entries.
-  Each transaction's `admin` is a MemberRef (id, discord_id, nickname) or null
-  when the row has no admin attribution.
+auth:bearer {
+  token: {{token}}
 }
 
 tests {
@@ -46,4 +37,17 @@ tests {
       });
     }
   });
+}
+
+docs {
+  Requires perm: ingots:read:transactions
+  Path params:
+    member_id - numeric value is looked up as Discord snowflake;
+                non-numeric value is looked up as internal member UUID.
+  Query params:
+    days  - optional, filter to last N days (1-365)
+    limit - page size (1-500, default 50)
+  Returns ADD_INGOTS and REMOVE_INGOTS changelog entries.
+  Each transaction's `admin` is a MemberRef (id, discord_id, nickname) or null
+  when the row has no admin attribution.
 }

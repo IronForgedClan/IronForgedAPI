@@ -7,15 +7,15 @@ meta {
 get {
   url: {{base_url}}/score/oxore/breakdown?bypass_cache=true
   body: none
-  auth: none
+  auth: bearer
 }
 
 params:query {
   bypass_cache: true
 }
 
-headers {
-  Authorization: Bearer {{token}}
+auth:bearer {
+  token: {{token}}
 }
 
 tests {

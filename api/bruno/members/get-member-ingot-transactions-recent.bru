@@ -5,21 +5,18 @@ meta {
 }
 
 get {
-  url: {{base_url}}/members/123456789012345678/ingots/transactions?days=30&limit=20
+  url: {{base_url}}/members/12e74b89-1ead-4bfc-bc98-8f7764c6335e/ingots/transactions?days=30&limit=20
   body: none
-  auth: none
+  auth: bearer
 }
 
-headers {
-  Authorization: Bearer {{token}}
+params:query {
+  days: 30
+  limit: 20
 }
 
-docs {
-  Requires perm: ingots:read:transactions
-  Same as Get Member Ingot Transactions, restricted to the last 30 days
-  and capped at 20 rows. Replace 123456789012345678 with a real Discord
-  snowflake (or internal UUID).
-  Returns ADD_INGOTS and REMOVE_INGOTS changelog entries.
+auth:bearer {
+  token: {{token}}
 }
 
 tests {
@@ -31,4 +28,12 @@ tests {
       expect(res.body.data.transactions.length).to.be.at.most(20);
     }
   });
+}
+
+docs {
+  Requires perm: ingots:read:transactions
+  Same as Get Member Ingot Transactions, restricted to the last 30 days
+  and capped at 20 rows. Replace 123456789012345678 with a real Discord
+  snowflake (or internal UUID).
+  Returns ADD_INGOTS and REMOVE_INGOTS changelog entries.
 }

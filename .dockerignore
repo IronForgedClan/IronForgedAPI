@@ -1,16 +1,11 @@
 .git/
-.devenv/
 .direnv/
 .env
 .env.local
 .env.live
 .env.staging
-.envrc
 .agents/
 .claude/
-devenv.yaml
-devenv.nix
-devenv.lock
 pyrightconfig.json
 LICENSE
 README.md
@@ -25,8 +20,3 @@ __pycache__/
 */__pycache__/
 */*/__pycache__/
 tests/
-service.json
-service.json.live
-service.json.staging
-state.json
-*.lock
