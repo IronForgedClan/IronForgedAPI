@@ -20,7 +20,3 @@ __pycache__/
 */__pycache__/
 */*/__pycache__/
 tests/
-service.json
-service.json.live
-service.json.staging
-state.json
