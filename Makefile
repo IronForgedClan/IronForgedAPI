@@ -2,7 +2,7 @@
 # Override the path: make up BOT_DIR=/path/to/IronForgedBot
 BOT_DIR ?= ../IronForgedBot
 
-.PHONY: up up-prod down down-all test format shell migrate revision downgrade update-deps build-prod rmi-prod clean api-management db-logs db-shell
+.PHONY: up up-prod down down-all test format shell migrate revision downgrade update-deps update-data build-dev build-prod rmi-dev rmi-prod clean api-management db-logs db-shell
 
 up:
 	@if [ ! -d "$(BOT_DIR)" ]; then \
@@ -31,7 +31,7 @@ test:
 	uv run --project api python run_tests.py
 
 format:
-	python -m black .
+	docker compose run --rm --no-deps api python -m black .
 
 shell:
 	docker compose run --rm api /bin/sh
@@ -45,15 +45,25 @@ revision:
 downgrade:
 	docker compose run --rm api alembic -c /usr/local/lib/python3.14/site-packages/ironforgedcore/alembic.ini downgrade -1
 
+build-dev:
+	docker compose build api
+
 build-prod:
 	docker compose build api_prod
+
+rmi-dev:
+	docker rmi ironforgedapi:dev
+
+rmi-prod:
+	docker rmi ironforgedapi:prod
 
 update-deps:
 	uv lock --directory api --upgrade
 	docker compose build api
 
-rmi-prod:
-	docker rmi ironforgedapi:prod
+update-data:
+	git submodule update --remote data
+	@echo "Data submodule updated to latest commit"
 
 api-management:
 	docker compose run --rm api python scripts/manage_api.py interactive
