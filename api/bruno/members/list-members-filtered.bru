@@ -7,17 +7,11 @@ meta {
 get {
   url: {{base_url}}/members?filter=booster&limit=10
   body: none
-  auth: none
+  auth: bearer
 }
 
-headers {
-  Authorization: Bearer {{token}}
-}
-
-docs {
-  Requires perm: members:list
-  Same as List Members, with filter=booster to restrict to active boosters.
-  Other valid filter values: active, prospect, blacklisted, banned.
+auth:bearer {
+  token: {{token}}
 }
 
 tests {
@@ -33,4 +27,10 @@ tests {
       expect(m.is_booster).to.equal(true);
     });
   });
+}
+
+docs {
+  Requires perm: members:list
+  Same as List Members, with filter=booster to restrict to active boosters.
+  Other valid filter values: active, prospect, blacklisted, banned.
 }

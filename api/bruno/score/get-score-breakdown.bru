@@ -7,11 +7,11 @@ meta {
 get {
   url: {{base_url}}/score/oxore/breakdown
   body: none
-  auth: none
+  auth: bearer
 }
 
-headers {
-  Authorization: Bearer {{token}}
+auth:bearer {
+  token: {{token}}
 }
 
 tests {

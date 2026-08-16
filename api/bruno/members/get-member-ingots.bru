@@ -5,21 +5,13 @@ meta {
 }
 
 get {
-  url: {{base_url}}/members/123456789012345678/ingots
+  url: {{base_url}}/members/12e74b89-1ead-4bfc-bc98-8f7764c6335e/ingots
   body: none
-  auth: none
+  auth: bearer
 }
 
-headers {
-  Authorization: Bearer {{token}}
-}
-
-docs {
-  Requires perm: ingots:read
-  Path params:
-    member_id - numeric value is looked up as Discord snowflake;
-                non-numeric value is looked up as internal member UUID.
-  Returns current ingot balance for the member.
+auth:bearer {
+  token: {{token}}
 }
 
 tests {
@@ -34,4 +26,12 @@ tests {
       expect(res.body.data).to.have.property("nickname");
     }
   });
+}
+
+docs {
+  Requires perm: ingots:read
+  Path params:
+    member_id - numeric value is looked up as Discord snowflake;
+                non-numeric value is looked up as internal member UUID.
+  Returns current ingot balance for the member.
 }
