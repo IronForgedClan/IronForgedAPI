@@ -14,11 +14,12 @@ dependencies = [
     "python-dotenv",
     "concurrent-log-handler",
     "python-dateutil",
-    "httpx2",
 ]
 
 [project.optional-dependencies]
 dev = [
+    "black",
+    "httpx2",
     "uv",
 ]
 
