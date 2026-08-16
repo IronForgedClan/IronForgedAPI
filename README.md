@@ -1,7 +1,6 @@
 <h1 align="center">Iron Forged API</h1>
 <p align="center">
-<img alt="API (latest)" src="https://img.shields.io/ghcr/v/IronForgedClan/IronForgedApi/ironforgedapi/latest?label=api%20%28latest%29&sort=semver">
-<img alt="API (staging)" src="https://img.shields.io/ghcr/v/IronForgedClan/IronForgedApi/ironforgedapi/staging?label=api%20%28staging%29&sort=semver&include_prereleases">
+<img alt="API version" src="https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/IronForgedClan/IronForgedApi/main/api/pyproject.toml&label=api&query=project.version">
 <a href="https://github.com/IronForgedClan/IronForgedApi/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/IronForgedClan/IronForgedApi"></a>
 <a href="https://github.com/psf/black"><img alt="Code style: Black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
